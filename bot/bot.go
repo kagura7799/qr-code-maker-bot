@@ -45,7 +45,30 @@ func main() {
 				userURL := userURLMessage.Message.Text
 				fmt.Println(userURL)
 
-				if checkURL(userURL) {
+				if userURL != "/start" && checkURL(userURL) {
+					jpegData, err := createQRCode(userURL)
+					if err != nil {
+						log.Fatal(err)
+					}
+
+					photoConfig := tgbotapi.PhotoConfig{
+						BaseFile: tgbotapi.BaseFile{
+							BaseChat: tgbotapi.BaseChat{
+								ChatID: update.Message.Chat.ID,
+							},
+							File: tgbotapi.FileBytes{
+								Name:  "qr.jpg",
+								Bytes: jpegData,
+							},
+						},
+						Caption: "Ваш QR-Code по запросу.", // Опциональный заголовок
+					}
+
+					_, err = bot.Send(photoConfig)
+					if err != nil {
+						log.Fatal(err)
+					}
+				} else if checkURL(userURL) {
 					fmt.Println("true url")
 
 					jpegData, err := createQRCode(userURL)
@@ -74,7 +97,6 @@ func main() {
 				} else {
 					bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, "Неправильный URL, попробуй еще раз"))
 				}
-
 			}
 		}
 	}
